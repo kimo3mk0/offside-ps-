@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OFFSIDE PS | PRO SYSTEM v7</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --neon: #39ff14; --bg: #050505; --panel: #0f0f0f; --red: #ff3131; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; text-align: right; }
+        body { background: var(--bg); color: white; padding-bottom: 50px; direction: rtl; }
+        nav { position: fixed; top: 0; width: 100%; padding: 15px 5%; background: rgba(0,0,0,0.95); display: flex; justify-content: space-between; align-items: center; z-index: 1000; border-bottom: 2px solid var(--neon); }
+        .logo { color: var(--neon); font-weight: 900; letter-spacing: 2px; }
+        .container { max-width: 1100px; margin: 100px auto 20px; padding: 15px; }
+        .section { background: var(--panel); border: 1px solid #222; padding: 20px; border-radius: 15px; margin-bottom: 25px; }
+        
+        /* Pricing Cards */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .card { background: var(--panel); border: 1px solid #222; padding: 15px; border-radius: 15px; text-align: center; }
+        .card img { width: 100%; height: 140px; object-fit: contain; background: #111; border-radius: 10px; }
+        .price-tag { color: var(--neon); font-weight: bold; }
+
+        /* Status & Booking */
+        .rooms-status { display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 8px; margin-bottom: 20px; }
+        .room-box { padding: 15px 5px; border-radius: 10px; text-align: center; border: 2px solid #222; }
+        .room-free { border-color: var(--neon); color: var(--neon); }
+        .room-busy { border-color: var(--red); color: var(--red); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        input, select, button { width: 100%; padding: 12px; margin: 5px 0; background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 8px; }
+        .btn-main { background: var(--neon); color: black; border: none; font-weight: bold; cursor: pointer; }
+        .btn-red { background: var(--red); color: white; border: none; font-weight: bold; cursor: pointer; }
+
+        #adminDashboard { display: none; margin-top: 30px; border-top: 3px double var(--neon); padding-top: 20px; }
+        .tab-content { display: none; padding-top: 20px; }
+        .active-tab { display: block; }
+        .tabs-btns { display: flex; gap: 5px; margin-bottom: 10px; }
+        .tabs-btns button { font-size: 0.8rem; background: #222; }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="logo">OFFSIDE PS</div>
+        <div id="liveClock" style="color: var(--neon);">00:00:00</div>
+    </nav>
+
+    <div class="container">
+        <div class="grid">
+            <div class="card">
+                <img src="https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400">
+                <h3 style="text-align: center;">PS5</h3>
+                <span class="price-tag">40 Single / 60 Multi</span>
+            </div>
+            <div class="card">
+                <img src="https://m.media-amazon.com/images/I/41GGPRqTZtL._SL500_.jpg">
+                <h3 style="text-align: center;">PS4 PRO</h3>
+                <span class="price-tag">25 Single / 40 Multi</span>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3 style="color: var(--neon); margin-bottom: 10px;">حالة الأجهزة:</h3>
+            <div class="rooms-status" id="roomsDisplay"></div>
+        </div>
+
+        <div class="section" id="bookingForm">
+            <h3 style="color: var(--neon);">احجز جهازك من البيت 🏠</h3>
+            <input type="text" id="bookName" placeholder="اسمك">
+            <input type="time" id="bookTime">
+            <select id="bookType">
+                <option value="PS5">بلايستيشن 5</option>
+                <option value="PS4">بلايستيشن 4</option>
+            </select>
+            <button class="btn-main" onclick="sendBooking()">تأكيد الحجز</button>
+        </div>
+
+        <div class="section">
+            <h3 style="color: var(--neon);">اطلب مشروبك</h3>
+            <input type="number" id="custRoom" placeholder="رقم الغرفة">
+            <select id="custDrinkSelect"></select>
+            <button class="btn-main" onclick="sendOrder()">إرسال الطلب</button>
+        </div>
+
+        <div class="section" id="loginBox" style="text-align: center;">
+            <p style="color: #555; margin-bottom: 10px;">نظام الإدارة</p>
+            <input type="text" id="aUser" placeholder="اليوزر" style="width: 120px; display: inline-block;">
+            <input type="password" id="aPass" placeholder="الباسورد" style="width: 120px; display: inline-block;">
+            <button class="btn-main" onclick="login()" style="width: 80px;">دخول</button>
+        </div>
+
+        <div id="adminDashboard">
+            <div class="tabs-btns">
+                <button onclick="showTab('roomsTab')">الغرف</button>
+                <button onclick="showTab('drinksTab')">المشروبات</button>
+                <button onclick="showTab('booksTab')">الحجوزات</button>
+            </div>
+
+            <div id="roomsTab" class="tab-content active-tab">
+                <div class="section">
+                    <input type="number" id="startRoom" placeholder="رقم الغرفة" style="width: 45%;">
+                    <select id="startRate" style="width: 45%;">
+                        <option value="40">Single PS5 (40)</option>
+                        <option value="60">Multi PS5 (60)</option>
+                        <option value="25">Single PS4 (25)</option>
+                        <option value="40">Multi PS4 (40)</option>
+                    </select>
+                    <button class="btn-main" onclick="openTable()">بدء اللعب</button>
+                    <div id="activeTablesAdmin" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+
+            <div id="drinksTab" class="tab-content">
+                <div class="section">
+                    <h4>إضافة مشروب جديد:</h4>
+                    <input type="text" id="newDrinkName" placeholder="اسم المشروب">
+                    <input type="number" id="newDrinkPrice" placeholder="السعر">
+                    <button class="btn-main" onclick="addDrink()">إضافة للقائمة</button>
+                    <hr style="margin: 15px 0;">
+                    <div id="drinksManagerList"></div>
+                </div>
+            </div>
+
+            <div id="booksTab" class="tab-content">
+                <div class="section">
+                    <h4>طلبات الحجز الحالية:</h4>
+                    <div id="adminBooksList"></div>
+                </div>
+            </div>
+
+            <div class="section" style="background: black;">
+                <h4>إجمالي الوردية: <span id="totalDay" style="color: var(--neon);">0</span> ج</h4>
+                <button onclick="resetDay()" style="font-size: 0.6rem; color: #444; border:none; background:none;">تصفير اليوم</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    let db = JSON.parse(localStorage.getItem('offside_v7_db')) || { 
+        active: [], 
+        total: 0, 
+        drinks: [
+            {name: 'بيبسي', price: 20},
+            {name: 'ستينج', price: 15},
+            {name: 'ريدبول', price: 60}
+        ],
+        bookings: []
+    };
+
+    function login() {
+        if(document.getElementById('aUser').value === "admin" && document.getElementById('aPass').value === "123") {
+            document.getElementById('adminDashboard').style.display = "block";
+            document.getElementById('loginBox').style.display = "none";
+        } else { alert("غلط!"); }
+    }
+
+    function showTab(id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
+        document.getElementById(id).classList.add('active-tab');
+    }
+
+    // إدارة المشروبات
+    function addDrink() {
+        let n = document.getElementById('newDrinkName').value;
+        let p = document.getElementById('newDrinkPrice').value;
+        if(n && p) {
+            db.drinks.push({name: n, price: parseInt(p)});
+            save();
+            document.getElementById('newDrinkName').value = '';
+            document.getElementById('newDrinkPrice').value = '';
+        }
+    }
+
+    function removeDrink(index) {
+        db.drinks.splice(index, 1);
+        save();
+    }
+
+    // نظام الحجز
+    function sendBooking() {
+        let n = document.getElementById('bookName').value;
+        let t = document.getElementById('bookTime').value;
+        let type = document.getElementById('bookType').value;
+        if(n && t) {
+            db.bookings.push({name: n, time: t, type: type, id: Date.now()});
+            save();
+            alert("تم إرسال طلب الحجز.. الإدارة هتحضرلك المكان!");
+        }
+    }
+
+    function deleteBook(id) {
+        db.bookings = db.bookings.filter(b => b.id != id);
+        save();
+    }
+
+    function openTable() {
+        let r = document.getElementById('startRoom').value;
+        let rt = document.getElementById('startRate').value;
+        if(!r || db.active.find(s => s.room == r)) return alert("غرفة مشغولة");
+        db.active.push({ room: r, rate: rt, start: Date.now(), drinks: [] });
+        save();
+    }
+
+    function sendOrder() {
+        let r = document.getElementById('custRoom').value;
+        let dIndex = document.getElementById('custDrinkSelect').value;
+        let session = db.active.find(s => s.room == r);
+        if(!session) return alert("الغرفة مش مفتوحة!");
+        let drink = db.drinks[dIndex];
+        session.drinks.push({name: drink.name, price: drink.price});
+        save();
+        alert("طلبك وصل!");
+    }
+
+    function save() {
+        localStorage.setItem('offside_v7_db', JSON.stringify(db));
+        render();
+    }
+
+    function render() {
+        // تحديث حالة الغرف
+        const roomsDiv = document.getElementById('roomsDisplay');
+        roomsDiv.innerHTML = '';
+        for(let i=1; i<=10; i++) {
+            let active = db.active.find(s => s.room == i);
+            roomsDiv.innerHTML += `<div class="room-box ${active ? 'room-busy' : 'room-free'}">${i}</div>`;
+        }
+
+        // تحديث قائمة المشروبات للزبون والأدمن
+        const dSelect = document.getElementById('custDrinkSelect');
+        const dManager = document.getElementById('drinksManagerList');
+        dSelect.innerHTML = '';
+        dManager.innerHTML = '';
+        db.drinks.forEach((d, i) => {
+            dSelect.innerHTML += `<option value="${i}">${d.name} (${d.price}ج)</option>`;
+            dManager.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <span>${d.name} - ${d.price}ج</span>
+                <button onclick="removeDrink(${i})" style="width:50px; padding:2px; background:red;">مسح</button>
+            </div>`;
+        });
+
+        // تحديث الحجوزات عند الأدمن
+        const bList = document.getElementById('adminBooksList');
+        bList.innerHTML = '';
+        db.bookings.forEach(b => {
+            bList.innerHTML += `<div class="section" style="border:1px solid var(--neon);">
+                <p>الاسم: ${b.name} | الساعة: ${b.time} | النوع: ${b.type}</p>
+                <button class="btn-red" onclick="deleteBook(${b.id})" style="padding:5px; margin-top:5px;">مسح الحجز</button>
+            </div>`;
+        });
+
+        // تحديث الطاولات الشغالة
+        const adminTables = document.getElementById('activeTablesAdmin');
+        adminTables.innerHTML = '';
+        db.active.forEach(s => {
+            let mins = Math.floor((Date.now() - s.start) / 60000);
+            adminTables.innerHTML += `<div class="section" style="background:#111; border-right:4px solid var(--neon);">
+                <b>غرفة ${s.room}</b> - ${mins} دقيقة
+                <button class="btn-red" onclick="finishBill(${s.room})">حساب</button>
+            </div>`;
+        });
+
+        document.getElementById('totalDay').innerText = db.total;
+    }
+
+    function finishBill(room) {
+        let s = db.active.find(x => x.room == room);
+        let mins = Math.max(1, Math.floor((Date.now() - s.start) / 60000));
+        let tCost = Math.ceil((mins/60)*s.rate);
+        let dCost = s.drinks.reduce((a,b)=>a+b.price, 0);
+        alert(`غرفة ${room}\nوقت: ${mins}د (${tCost}ج)\nمشروبات: ${dCost}ج\nالإجمالي: ${tCost+dCost}ج`);
+        db.total += (tCost+dCost);
+        db.active = db.active.filter(x => x.room != room);
+        save();
+    }
+
+    function resetDay() { if(confirm("تصفير؟")) { db.total = 0; save(); } }
+    setInterval(() => { document.getElementById('liveClock').innerText = new Date().toLocaleTimeString(); render(); }, 60000);
+    window.onload = render;
+</script>
+</body>
+</html>
