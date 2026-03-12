@@ -3,280 +3,286 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OFFSIDE PS | PRO SYSTEM v7</title>
+    <title>R2 PS | PRO SYSTEM v12</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root { --neon: #39ff14; --bg: #050505; --panel: #0f0f0f; --red: #ff3131; }
+        :root { --neon: #39ff14; --bg: #050505; --panel: #0f0f0f; --red: #ff3131; --blue: #00d4ff; --gold: #ffcc00; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; text-align: right; }
         body { background: var(--bg); color: white; padding-bottom: 50px; direction: rtl; }
-        nav { position: fixed; top: 0; width: 100%; padding: 15px 5%; background: rgba(0,0,0,0.95); display: flex; justify-content: space-between; align-items: center; z-index: 1000; border-bottom: 2px solid var(--neon); }
-        .logo { color: var(--neon); font-weight: 900; letter-spacing: 2px; }
-        .container { max-width: 1100px; margin: 100px auto 20px; padding: 15px; }
-        .section { background: var(--panel); border: 1px solid #222; padding: 20px; border-radius: 15px; margin-bottom: 25px; }
         
-        /* Pricing Cards */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
-        .card { background: var(--panel); border: 1px solid #222; padding: 15px; border-radius: 15px; text-align: center; }
-        .card img { width: 100%; height: 140px; object-fit: contain; background: #111; border-radius: 10px; }
-        .price-tag { color: var(--neon); font-weight: bold; }
+        /* نظام الإشعارات */
+        #gameNotify {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            width: 85%; max-width: 400px; background: rgba(15, 15, 15, 0.95);
+            border: 2px solid var(--neon); padding: 15px; border-radius: 15px;
+            z-index: 9999; transition: 0.5s; text-align: center; box-shadow: 0 0 20px var(--neon);
+        }
+        #gameNotify.show { top: 20px; }
 
-        /* Status & Booking */
-        .rooms-status { display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 8px; margin-bottom: 20px; }
-        .room-box { padding: 15px 5px; border-radius: 10px; text-align: center; border: 2px solid #222; }
-        .room-free { border-color: var(--neon); color: var(--neon); }
-        .room-busy { border-color: var(--red); color: var(--red); animation: pulse 2s infinite; }
+        nav { position: fixed; top: 0; width: 100%; padding: 15px 5%; background: rgba(0,0,0,0.95); display: flex; justify-content: space-between; align-items: center; z-index: 1000; border-bottom: 2px solid var(--neon); }
+        .logo { color: var(--neon); font-weight: 900; letter-spacing: 2px; font-size: 1.4rem; }
+        .container { max-width: 1100px; margin: 100px auto 20px; padding: 15px; }
+        
+        /* لوحة إحصائيات للمنظر */
+        .fake-stats { display: flex; gap: 10px; margin-bottom: 20px; }
+        .stat-box { background: var(--panel); border: 1px solid #222; flex: 1; padding: 8px; border-radius: 10px; text-align: center; border-bottom: 2px solid var(--blue); }
+        .stat-box small { font-size: 0.6rem; color: #666; display: block; }
+        .stat-box b { color: var(--blue); font-size: 0.9rem; }
+
+        .section { background: var(--panel); border: 1px solid #222; padding: 20px; border-radius: 15px; margin-bottom: 25px; position: relative; }
+        .section-title { color: var(--neon); margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 10px; }
+        
+        /* Grid */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        .card { background: var(--panel); border: 1px solid #222; padding: 15px; border-radius: 15px; text-align: center; border-top: 2px solid var(--neon); }
+        .card img { width: 100%; height: 120px; object-fit: contain; background: #111; border-radius: 10px; }
+
+        /* الأجهزة */
+        .rooms-status { display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 8px; }
+        .room-box { padding: 15px 5px; border-radius: 10px; text-align: center; border: 2px solid #222; font-weight: bold; transition: 0.3s; }
+        .room-free { border-color: var(--neon); color: var(--neon); opacity: 0.8; }
+        .room-busy { border-color: var(--red); color: var(--red); animation: pulse 2s infinite; box-shadow: 0 0 10px var(--red); }
+        .room-fix { border-color: var(--gold); color: var(--gold); }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
         input, select, button { width: 100%; padding: 12px; margin: 5px 0; background: #1a1a1a; border: 1px solid #444; color: white; border-radius: 8px; }
-        .btn-main { background: var(--neon); color: black; border: none; font-weight: bold; cursor: pointer; }
+        .btn-main { background: var(--neon); color: black; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; }
         .btn-red { background: var(--red); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-blue { background: var(--blue); color: black; border: none; font-weight: bold; cursor: pointer; }
 
+        /* لوحة التحكم */
         #adminDashboard { display: none; margin-top: 30px; border-top: 3px double var(--neon); padding-top: 20px; }
-        .tab-content { display: none; padding-top: 20px; }
+        .tabs-btns { display: flex; gap: 5px; overflow-x: auto; padding: 10px 0; }
+        .tabs-btns button { font-size: 0.7rem; background: #222; min-width: 80px; border: 1px solid #333; }
+        .tab-content { display: none; }
         .active-tab { display: block; }
-        .tabs-btns { display: flex; gap: 5px; margin-bottom: 10px; }
-        .tabs-btns button { font-size: 0.8rem; background: #222; }
+
+        /* الفاتورة المصممة للتصوير */
+        .bill-card { background: #fff; color: #000; padding: 20px; border-radius: 10px; margin-top: 10px; border-left: 8px solid var(--neon); position: relative; }
+        .export-bill { background: #000; color: #fff; padding: 25px; width: 350px; border: 2px solid var(--neon); border-radius: 0; text-align: center; position: fixed; left: -1000px; }
+        
+        /* شريط الحالة السفلي */
+        .status-bar { position: fixed; bottom: 0; width: 100%; background: #000; font-size: 0.6rem; padding: 5px 15px; color: #555; border-top: 1px solid #222; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
+    <div id="gameNotify">
+        <b id="notifTitle">R2 SECURITY ENGINE</b>
+        <p id="notifMsg"></p>
+    </div>
+
     <nav>
-        <div class="logo">OFFSIDE PS</div>
-        <div id="liveClock" style="color: var(--neon);">00:00:00</div>
+        <div class="logo"><i class="fas fa-microchip"></i> R2 PREMIUM</div>
+        <div id="liveClock" style="color: var(--neon); font-family: monospace;">00:00:00</div>
     </nav>
 
     <div class="container">
+        
+        <div class="fake-stats">
+            <div class="stat-box"><small>System Load</small><b>1.2%</b></div>
+            <div class="stat-box" style="border-color: var(--neon);"><small>Network Status</small><b style="color: var(--neon);">Stable</b></div>
+            <div class="stat-box" style="border-color: var(--red);"><small>Active Tasks</small><b id="taskCount" style="color: var(--red);">0</b></div>
+        </div>
+
         <div class="grid">
-            <div class="card">
-                <img src="https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400">
-                <h3 style="text-align: center;">PS5</h3>
-                <span class="price-tag">40 Single / 60 Multi</span>
-            </div>
-            <div class="card">
-                <img src="https://m.media-amazon.com/images/I/41GGPRqTZtL._SL500_.jpg">
-                <h3 style="text-align: center;">PS4 PRO</h3>
-                <span class="price-tag">25 Single / 40 Multi</span>
-            </div>
+            <div class="card"><img src="https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?w=400"><h3>PS5</h3><p style="font-size:0.7rem; color:var(--neon);">v5.2 High Perf.</p></div>
+            <div class="card"><img src="https://m.media-amazon.com/images/I/41GGPRqTZtL._SL500_.jpg"><h3>PS4 PRO</h3><p style="font-size:0.7rem; color:var(--neon);">v9.0 Stable</p></div>
         </div>
 
         <div class="section">
-            <h3 style="color: var(--neon); margin-bottom: 10px;">حالة الأجهزة:</h3>
+            <h3 class="section-title"><i class="fas fa-satellite-dish"></i> مراقبة الأجهزة الحية:</h3>
             <div class="rooms-status" id="roomsDisplay"></div>
         </div>
 
-        <div class="section" id="bookingForm">
-            <h3 style="color: var(--neon);">احجز جهازك من البيت 🏠</h3>
-            <input type="text" id="bookName" placeholder="اسمك">
-            <input type="time" id="bookTime">
-            <select id="bookType">
-                <option value="PS5">بلايستيشن 5</option>
-                <option value="PS4">بلايستيشن 4</option>
-            </select>
-            <button class="btn-main" onclick="sendBooking()">تأكيد الحجز</button>
-        </div>
-
         <div class="section">
-            <h3 style="color: var(--neon);">اطلب مشروبك</h3>
-            <input type="number" id="custRoom" placeholder="رقم الغرفة">
-            <select id="custDrinkSelect"></select>
-            <button class="btn-main" onclick="sendOrder()">إرسال الطلب</button>
+            <h3 class="section-title"><i class="fas fa-cart-plus"></i> بوابة الطلبات</h3>
+            <div style="display: flex; gap: 5px;">
+                <input type="number" id="custRoom" placeholder="رقم الغرفة" style="width: 30%;">
+                <select id="custDrinkSelect" style="width: 70%;"></select>
+            </div>
+            <button class="btn-main" onclick="sendOrder()">تأكيد الطلب <i class="fas fa-check-circle"></i></button>
         </div>
 
-        <div class="section" id="loginBox" style="text-align: center;">
-            <p style="color: #555; margin-bottom: 10px;">نظام الإدارة</p>
-            <input type="text" id="aUser" placeholder="اليوزر" style="width: 120px; display: inline-block;">
-            <input type="password" id="aPass" placeholder="الباسورد" style="width: 120px; display: inline-block;">
-            <button class="btn-main" onclick="login()" style="width: 80px;">دخول</button>
+        <div class="section" id="loginBox" style="text-align: center; border-style: dashed;">
+            <input type="password" id="aPass" placeholder="Root Password" style="width: 150px; text-align: center;">
+            <button class="btn-main" onclick="login()" style="width: 100px;">Access</button>
         </div>
 
         <div id="adminDashboard">
             <div class="tabs-btns">
-                <button onclick="showTab('roomsTab')">الغرف</button>
-                <button onclick="showTab('drinksTab')">المشروبات</button>
-                <button onclick="showTab('booksTab')">الحجوزات</button>
+                <button onclick="showTab('roomsTab')">التحكم بالغرف</button>
+                <button onclick="showTab('billsTab')">الأرشيف الحسابي</button>
+                <button onclick="showTab('drinksTab')">إدارة المخزن</button>
             </div>
 
             <div id="roomsTab" class="tab-content active-tab">
                 <div class="section">
-                    <input type="number" id="startRoom" placeholder="رقم الغرفة" style="width: 45%;">
-                    <select id="startRate" style="width: 45%;">
-                        <option value="40">Single PS5 (40)</option>
-                        <option value="60">Multi PS5 (60)</option>
-                        <option value="25">Single PS4 (25)</option>
-                        <option value="40">Multi PS4 (40)</option>
-                    </select>
-                    <button class="btn-main" onclick="openTable()">بدء اللعب</button>
+                    <div style="display:flex; gap:5px">
+                        <input type="number" id="startRoom" placeholder="رقم الغرفة">
+                        <select id="startRate">
+                            <option value="40">PS5 (40 EGP/h)</option>
+                            <option value="25">PS4 (25 EGP/h)</option>
+                        </select>
+                    </div>
+                    <button class="btn-main" onclick="openTable()" style="background: var(--blue);">بدء الجلسة</button>
                     <div id="activeTablesAdmin" style="margin-top: 15px;"></div>
                 </div>
             </div>
 
+            <div id="billsTab" class="tab-content">
+                <div id="billsList"></div>
+            </div>
+
             <div id="drinksTab" class="tab-content">
-                <div class="section">
-                    <h4>إضافة مشروب جديد:</h4>
-                    <input type="text" id="newDrinkName" placeholder="اسم المشروب">
-                    <input type="number" id="newDrinkPrice" placeholder="السعر">
-                    <button class="btn-main" onclick="addDrink()">إضافة للقائمة</button>
-                    <hr style="margin: 15px 0;">
-                    <div id="drinksManagerList"></div>
-                </div>
+                <input type="text" id="newDrinkName" placeholder="اسم المشروب">
+                <input type="number" id="newDrinkPrice" placeholder="السعر">
+                <button class="btn-main" onclick="addDrink()">حفظ في المنيو</button>
+                <div id="drinksManagerList" style="margin-top:15px"></div>
             </div>
 
-            <div id="booksTab" class="tab-content">
-                <div class="section">
-                    <h4>طلبات الحجز الحالية:</h4>
-                    <div id="adminBooksList"></div>
-                </div>
-            </div>
-
-            <div class="section" style="background: black;">
-                <h4>إجمالي الوردية: <span id="totalDay" style="color: var(--neon);">0</span> ج</h4>
-                <button onclick="resetDay()" style="font-size: 0.6rem; color: #444; border:none; background:none;">تصفير اليوم</button>
+            <div class="section" style="background: #000; border: 2px solid var(--neon); text-align: center;">
+                <p style="font-size: 0.7rem; color: #555;">Net Revenue (Today)</p>
+                <h2 style="color: var(--neon);"><span id="totalDay">0</span> EGP</h2>
             </div>
         </div>
     </div>
 
+    <div class="status-bar">
+        <span>Server: <span style="color:var(--neon)">Online</span></span>
+        <span>Database: <span style="color:var(--neon)">Synchronized</span></span>
+        <span>Region: <span style="color:var(--neon)">Middle East</span></span>
+    </div>
+
+    <div id="billCapture" class="export-bill">
+        <h2 style="color: var(--neon);">R2 PLAYSTATION</h2>
+        <hr style="margin: 10px 0; border: 0.5px solid #333;">
+        <h3 id="capRoom"></h3>
+        <p id="capTime"></p>
+        <p id="capDrinks"></p>
+        <hr style="margin: 10px 0; border: 0.5px solid #333;">
+        <h2 id="capTotal" style="color: var(--neon);"></h2>
+        <p style="font-size: 10px; margin-top: 10px;">Thank you for choosing R2!</p>
+    </div>
+
 <script>
-    let db = JSON.parse(localStorage.getItem('offside_v7_db')) || { 
-        active: [], 
-        total: 0, 
-        drinks: [
-            {name: 'بيبسي', price: 20},
-            {name: 'ستينج', price: 15},
-            {name: 'ريدبول', price: 60}
-        ],
-        bookings: []
+    let db = JSON.parse(localStorage.getItem('R2_LEGACY_v12')) || { 
+        active: [], total: 0, drinks: [{name:'بيبسي',price:20}, {name:'ريدبول',price:60}], pendingBills: [], maintenance: [] 
     };
 
+    function notify(msg, err=false) {
+        const box = document.getElementById('gameNotify');
+        document.getElementById('notifMsg').innerText = msg;
+        box.style.borderColor = err ? 'var(--red)' : 'var(--neon)';
+        box.classList.add('show');
+        setTimeout(() => box.classList.remove('show'), 3000);
+    }
+
     function login() {
-        if(document.getElementById('aUser').value === "admin" && document.getElementById('aPass').value === "123") {
+        if(document.getElementById('aPass').value === "123") {
             document.getElementById('adminDashboard').style.display = "block";
             document.getElementById('loginBox').style.display = "none";
-        } else { alert("غلط!"); }
+            notify("Core Access Granted");
+        } else { notify("Access Denied!", true); }
     }
 
-    function showTab(id) {
-        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab'));
-        document.getElementById(id).classList.add('active-tab');
-    }
-
-    // إدارة المشروبات
-    function addDrink() {
-        let n = document.getElementById('newDrinkName').value;
-        let p = document.getElementById('newDrinkPrice').value;
-        if(n && p) {
-            db.drinks.push({name: n, price: parseInt(p)});
-            save();
-            document.getElementById('newDrinkName').value = '';
-            document.getElementById('newDrinkPrice').value = '';
-        }
-    }
-
-    function removeDrink(index) {
-        db.drinks.splice(index, 1);
-        save();
-    }
-
-    // نظام الحجز
-    function sendBooking() {
-        let n = document.getElementById('bookName').value;
-        let t = document.getElementById('bookTime').value;
-        let type = document.getElementById('bookType').value;
-        if(n && t) {
-            db.bookings.push({name: n, time: t, type: type, id: Date.now()});
-            save();
-            alert("تم إرسال طلب الحجز.. الإدارة هتحضرلك المكان!");
-        }
-    }
-
-    function deleteBook(id) {
-        db.bookings = db.bookings.filter(b => b.id != id);
+    function toggleFix(room) {
+        if(db.maintenance.includes(room)) db.maintenance = db.maintenance.filter(r => r != room);
+        else db.maintenance.push(room);
         save();
     }
 
     function openTable() {
         let r = document.getElementById('startRoom').value;
-        let rt = document.getElementById('startRate').value;
-        if(!r || db.active.find(s => s.room == r)) return alert("غرفة مشغولة");
-        db.active.push({ room: r, rate: rt, start: Date.now(), drinks: [] });
+        if(!r || db.active.find(s => s.room == r)) return notify("Device Busy", true);
+        db.active.push({ room: r, rate: document.getElementById('startRate').value, start: Date.now(), drinks: [] });
         save();
+        notify(`Room ${r} is now live`);
     }
 
     function sendOrder() {
         let r = document.getElementById('custRoom').value;
-        let dIndex = document.getElementById('custDrinkSelect').value;
-        let session = db.active.find(s => s.room == r);
-        if(!session) return alert("الغرفة مش مفتوحة!");
-        let drink = db.drinks[dIndex];
-        session.drinks.push({name: drink.name, price: drink.price});
+        let s = db.active.find(x => x.room == r);
+        if(!s) return notify("Room Offline!", true);
+        let d = db.drinks[document.getElementById('custDrinkSelect').value];
+        s.drinks.push(d);
         save();
-        alert("طلبك وصل!");
+        notify("Order Processed ✅");
     }
 
-    function save() {
-        localStorage.setItem('offside_v7_db', JSON.stringify(db));
-        render();
-    }
-
-    function render() {
-        // تحديث حالة الغرف
-        const roomsDiv = document.getElementById('roomsDisplay');
-        roomsDiv.innerHTML = '';
-        for(let i=1; i<=10; i++) {
-            let active = db.active.find(s => s.room == i);
-            roomsDiv.innerHTML += `<div class="room-box ${active ? 'room-busy' : 'room-free'}">${i}</div>`;
-        }
-
-        // تحديث قائمة المشروبات للزبون والأدمن
-        const dSelect = document.getElementById('custDrinkSelect');
-        const dManager = document.getElementById('drinksManagerList');
-        dSelect.innerHTML = '';
-        dManager.innerHTML = '';
-        db.drinks.forEach((d, i) => {
-            dSelect.innerHTML += `<option value="${i}">${d.name} (${d.price}ج)</option>`;
-            dManager.innerHTML += `<div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                <span>${d.name} - ${d.price}ج</span>
-                <button onclick="removeDrink(${i})" style="width:50px; padding:2px; background:red;">مسح</button>
-            </div>`;
-        });
-
-        // تحديث الحجوزات عند الأدمن
-        const bList = document.getElementById('adminBooksList');
-        bList.innerHTML = '';
-        db.bookings.forEach(b => {
-            bList.innerHTML += `<div class="section" style="border:1px solid var(--neon);">
-                <p>الاسم: ${b.name} | الساعة: ${b.time} | النوع: ${b.type}</p>
-                <button class="btn-red" onclick="deleteBook(${b.id})" style="padding:5px; margin-top:5px;">مسح الحجز</button>
-            </div>`;
-        });
-
-        // تحديث الطاولات الشغالة
-        const adminTables = document.getElementById('activeTablesAdmin');
-        adminTables.innerHTML = '';
-        db.active.forEach(s => {
-            let mins = Math.floor((Date.now() - s.start) / 60000);
-            adminTables.innerHTML += `<div class="section" style="background:#111; border-right:4px solid var(--neon);">
-                <b>غرفة ${s.room}</b> - ${mins} دقيقة
-                <button class="btn-red" onclick="finishBill(${s.room})">حساب</button>
-            </div>`;
-        });
-
-        document.getElementById('totalDay').innerText = db.total;
-    }
-
-    function finishBill(room) {
+    function calculateBill(room) {
         let s = db.active.find(x => x.room == room);
         let mins = Math.max(1, Math.floor((Date.now() - s.start) / 60000));
         let tCost = Math.ceil((mins/60)*s.rate);
         let dCost = s.drinks.reduce((a,b)=>a+b.price, 0);
-        alert(`غرفة ${room}\nوقت: ${mins}د (${tCost}ج)\nمشروبات: ${dCost}ج\nالإجمالي: ${tCost+dCost}ج`);
-        db.total += (tCost+dCost);
+        db.pendingBills.push({ room: s.room, time: mins, tCost: tCost, dCost: dCost, total: tCost + dCost });
         db.active = db.active.filter(x => x.room != room);
         save();
+        showTab('billsTab');
     }
 
-    function resetDay() { if(confirm("تصفير؟")) { db.total = 0; save(); } }
-    setInterval(() => { document.getElementById('liveClock').innerText = new Date().toLocaleTimeString(); render(); }, 60000);
+    function downloadBill(index) {
+        const b = db.pendingBills[index];
+        document.getElementById('capRoom').innerText = `فاتورة غرفة ${b.room}`;
+        document.getElementById('capTime').innerText = `وقت اللعب: ${b.time} دقيقة (${b.tCost} ج)`;
+        document.getElementById('capDrinks').innerText = `المشروبات: ${b.dCost} ج`;
+        document.getElementById('capTotal').innerText = `الإجمالي: ${b.total} ج`;
+        html2canvas(document.getElementById('billCapture')).then(canvas => {
+            let link = document.createElement('a');
+            link.download = `R2_Bill_${b.room}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    }
+
+    function save() { localStorage.setItem('R2_LEGACY_v12', JSON.stringify(db)); render(); }
+
+    function render() {
+        const roomsDiv = document.getElementById('roomsDisplay');
+        roomsDiv.innerHTML = '';
+        for(let i=1; i<=10; i++) {
+            let status = 'room-free';
+            if(db.active.find(s => s.room == i)) status = 'room-busy';
+            if(db.maintenance.includes(String(i))) status = 'room-fix';
+            roomsDiv.innerHTML += `<div class="room-box ${status}">${i}</div>`;
+        }
+        document.getElementById('taskCount').innerText = db.active.length;
+
+        const adminTables = document.getElementById('activeTablesAdmin');
+        adminTables.innerHTML = db.active.map(s => `
+            <div class="section" style="padding:10px; margin-bottom:5px; border-right:4px solid var(--red);">
+                Session Room ${s.room} <button class="btn-red" onclick="calculateBill(${s.room})" style="width:70px; padding:5px; float:left;">Finalize</button>
+            </div>
+        `).join('');
+
+        // أزرار الصيانة
+        adminTables.innerHTML += `<hr style="border-color:#222; margin:10px 0;"><p style="font-size:0.6rem;">Service Control:</p>`;
+        for(let i=1; i<=10; i++){
+            let isFix = db.maintenance.includes(String(i));
+            adminTables.innerHTML += `<button onclick="toggleFix('${i}')" style="width:30px; font-size:0.6rem; background:${isFix?'var(--gold)':'#222'}; margin:2px;">${i}</button>`;
+        }
+
+        const billsDiv = document.getElementById('billsList');
+        billsDiv.innerHTML = db.pendingBills.map((b, i) => `
+            <div class="bill-card">
+                <h3 style="font-size:0.9rem;">Room ${b.room} | Total: ${b.total} EGP</h3>
+                <div style="display:flex; gap:5px; margin-top:5px;">
+                    <button class="btn-main" onclick="confirmPayment(${i})" style="padding:5px; font-size:0.7rem;">Collect</button>
+                    <button class="btn-blue" onclick="downloadBill(${i})" style="width:40px; padding:5px;"><i class="fas fa-camera"></i></button>
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('custDrinkSelect').innerHTML = db.drinks.map((d,i)=>`<option value="${i}">${d.name} (${d.price}ج)</option>`).join('');
+        document.getElementById('totalDay').innerText = db.total;
+    }
+
+    function confirmPayment(i) { db.total += db.pendingBills[i].total; db.pendingBills.splice(i, 1); save(); notify("Funds Added to Vault"); }
+    function showTab(id) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active-tab')); document.getElementById(id).classList.add('active-tab'); }
+    function addDrink() { let n = document.getElementById('newDrinkName').value; let p = document.getElementById('newDrinkPrice').value; if(n && p){db.drinks.push({name:n, price:parseInt(p)}); save();} }
+
+    setInterval(() => { document.getElementById('liveClock').innerText = new Date().toLocaleTimeString('en-GB'); render(); }, 1000);
     window.onload = render;
 </script>
 </body>
